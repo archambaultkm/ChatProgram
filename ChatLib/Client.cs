@@ -8,12 +8,11 @@ namespace ChatLib
     {
         public string localIP { get; private set; }
         public int port { get; set; }
-        private TcpClient socketForServer;
         public bool clientStatus = true;
         
-        public NetworkStream networkStream { get; set; }
-        public StreamWriter streamWriter { get; set; }
-        public StreamReader streamReader { get; set; }
+        public NetworkStream networkStream { get; private set; }
+        public StreamWriter streamWriter { get; private set; }
+        public StreamReader streamReader { get; private set; }
 
         public Client(string localIP, int port)
         {
@@ -25,8 +24,12 @@ namespace ChatLib
         {
             try
             {
-                //maybe add validation that it's the same as server?
-                socketForServer = new TcpClient(localIP.ToString(), port);
+                //program will fail if ip isn't same as server
+                TcpClient client = new TcpClient(localIP, port);
+                networkStream = client.GetStream();
+                streamReader = new StreamReader(networkStream);
+                streamWriter = new StreamWriter(networkStream);
+                Console.WriteLine("Connected to server");
             }
             catch
             {
@@ -35,19 +38,11 @@ namespace ChatLib
             }
         }
 
-        public void serverCommunication()
-        {
-            networkStream = socketForServer.GetStream();
-            streamReader = new StreamReader(networkStream);
-            streamWriter = new StreamWriter(networkStream);
-        }
-
         public void disconnect()
         {
             streamWriter.Close();
             networkStream.Close();
             streamWriter.Close();
-            socketForServer.Close();
         }
     }
 }

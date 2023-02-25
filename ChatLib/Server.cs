@@ -28,7 +28,8 @@ namespace ChatLib
             try
             {
                 tcpListener = new TcpListener(localIP, port);
-                
+                tcpListener.Start();
+                Console.WriteLine("Server started successfully");
             }
             catch
             {
@@ -36,15 +37,17 @@ namespace ChatLib
             }
         }
 
-        public void acceptClient()
+        public bool acceptClient()
         {
             try
             {
                 socketForClient = tcpListener.AcceptSocket();
+                return true;
             }
             catch
             {
                 Console.WriteLine("Error accepting client");
+                return false;
             }
         }
 
