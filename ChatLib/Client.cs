@@ -26,9 +26,11 @@ namespace ChatLib
             {
                 //program will fail if ip isn't same as server
                 TcpClient client = new TcpClient(localIP, port);
+                
                 networkStream = client.GetStream();
                 streamReader = new StreamReader(networkStream);
                 streamWriter = new StreamWriter(networkStream);
+                
                 Console.WriteLine("Connected to server");
             }
             catch

@@ -32,13 +32,14 @@ namespace ChatProgram
             //makes a new tcpClient/stream objects
             client.ConnectToServer();
             
+            //at this point the client program will crash if run beofre server
             Thread.Sleep(500);
             Console.Clear();
 
             try
             {
-                string clientMessage = "";
-                string serverMessage = "";
+                string clientMessage;
+                string serverMessage;
 
                 while (client.clientStatus)
                 {
@@ -54,7 +55,26 @@ namespace ChatProgram
 
                         client.streamWriter.Flush();
                         client.clientStatus = false;
+
+                        return;
                     }
+                    
+                    if (Console.KeyAvailable)
+                    {
+                        //User input mode: when user press "I" key.            
+                        ConsoleKeyInfo userKey = Console.ReadKey(); //Blocking statement
+                        if (userKey.Key == ConsoleKey.Escape)
+                        {
+                            client.streamWriter.WriteLine(clientMessage);
+                            client.streamWriter.WriteLine("Client has left the chat");
+
+                            client.streamWriter.Flush();
+                            client.clientStatus = false;
+
+                            return;
+                        }
+                    }
+                    
                     else
                     {
                         client.streamWriter.WriteLine(clientMessage);
@@ -80,8 +100,9 @@ namespace ChatProgram
         {
             Console.Title = "Running as Server";
                 
-            //idk the rules around these so look into whether there's a better way to do it:
+            //use IPAddress.Any to accept any connection (localhost wil work)
             IPAddress localIP = IPAddress.Any;
+            //I just picked a random port
             int port = 8888;
             
             Server server = new Server(localIP, port);
@@ -96,7 +117,7 @@ namespace ChatProgram
                 Thread.Sleep(500);
                 Console.Clear();
                 Console.WriteLine("Waiting for client to connect...");
-            
+
                 //if a client is trying to connect
                 //accept client has server.acceptsocket method
                 if (server.acceptClient())
@@ -105,7 +126,6 @@ namespace ChatProgram
                     Console.WriteLine("Client Connected");
                 }
             }
-            
 
             try
             {
@@ -121,20 +141,21 @@ namespace ChatProgram
                     if (server.socketForClient.Connected)
                     {
                         serverMessage = server.streamReader.ReadLine();
-                        //print their message to the console
-                        Console.WriteLine("Client: " + serverMessage);
 
                         //check if they've entered any variation of the word "quit"
                         if (string.Equals(serverMessage, "quit", StringComparison.OrdinalIgnoreCase))
                         {
+                            Console.WriteLine("Client entered \"" + serverMessage + "\" to exit.");
+                            Console.WriteLine("Exiting...");
+                            //closes stream objects and client socket
+                            server.disconnectChat();
                             server.serverStatus = false;
-                            
-                            server.streamReader.Close();
-                            server.networkStream.Close();
-                            server.streamWriter.Close();
                             
                             return;
                         }
+                        
+                        //print their message to the console
+                        Console.WriteLine("Client: " + serverMessage);
 
                         //indicate to the server they're in insert mode
                         Console.Write(">>");
@@ -148,10 +169,6 @@ namespace ChatProgram
 
                     }//end if(server.socketForClient.Connected)
                 } //end while loop
-                
-                //closes stream objects and client socket
-                Console.WriteLine("Exiting...");
-                server.disconnectChat();
             }
             catch (Exception e)
             {
@@ -160,5 +177,3 @@ namespace ChatProgram
         }
     }
 }
-
-
