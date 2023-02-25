@@ -6,8 +6,8 @@ namespace ChatLib
 {
     public class Client
     {
-        public string localIP { get; private set; }
-        public int port { get; set; }
+        public string localIP { get; }
+        public int port { get; }
         public bool clientStatus = true;
         
         public NetworkStream networkStream { get; private set; }

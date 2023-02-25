@@ -32,7 +32,7 @@ namespace ChatProgram
             //makes a new tcpClient/stream objects
             client.ConnectToServer();
             
-            //at this point the client program will crash if run beofre server
+            //at this point the client program will crash if run before server
             Thread.Sleep(500);
             Console.Clear();
 
@@ -43,29 +43,41 @@ namespace ChatProgram
 
                 while (client.clientStatus)
                 {
-                    Console.Write(">>");
-                    clientMessage = Console.ReadLine();
-
-                    if (string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
-                    {
-                        
-                        //send the server a message to say the client has left
-                        client.streamWriter.WriteLine(clientMessage);
-                        client.streamWriter.WriteLine("Client has left the chat");
-
-                        client.streamWriter.Flush();
-                        client.clientStatus = false;
-
-                        return;
-                    }
-                    
                     if (Console.KeyAvailable)
                     {
                         //User input mode: when user press "I" key.            
                         ConsoleKeyInfo userKey = Console.ReadKey(); //Blocking statement
-                        if (userKey.Key == ConsoleKey.Escape)
+                        if (userKey.Key == ConsoleKey.I)
                         {
-                            client.streamWriter.WriteLine(clientMessage);
+                            Console.Write(">>");
+                            clientMessage = Console.ReadLine();
+                            //break;
+                            
+                            if (string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
+                            {
+                        
+                                //send the server a message to say the client has left
+                                client.streamWriter.WriteLine(clientMessage);
+                                client.streamWriter.WriteLine("Client has left the chat");
+
+                                client.streamWriter.Flush();
+                                client.clientStatus = false;
+
+                                return;
+                            }
+                            else
+                            {
+                                client.streamWriter.WriteLine(clientMessage);
+                                client.streamWriter.Flush();
+
+                                //this is from the reader, so the message the server sent to the stream
+                                serverMessage = client.streamReader.ReadLine();
+                                Console.WriteLine("Server: " + serverMessage);
+                            }
+                        }
+                        else if (userKey.Key == ConsoleKey.Escape)
+                        {
+                            //send the server a message to say the client has left
                             client.streamWriter.WriteLine("Client has left the chat");
 
                             client.streamWriter.Flush();
@@ -73,20 +85,16 @@ namespace ChatProgram
 
                             return;
                         }
-                    }
-                    
-                    else
-                    {
-                        client.streamWriter.WriteLine(clientMessage);
-                        client.streamWriter.Flush();
-                        
-                        //this is from the reader, so the message the server sent to the stream
-                        serverMessage = client.streamReader.ReadLine();
-                        Console.WriteLine("Server: " + serverMessage);
+                        else
+                        {
+                            Console.WriteLine($"You typed {userKey.Key}");
+                            Console.WriteLine("Press \"I\" to enter insert mode.");
+                            Console.WriteLine("Type \"quit\" or press Escape to close the application.");
+                            Thread.Sleep(1000);
+                        }
                     }
                 }//end while(client.clientStatus)
             }
-            
             catch
             {
                 Console.WriteLine("Problem reading from server");
@@ -94,7 +102,7 @@ namespace ChatProgram
             
             //closes stream objects
             client.disconnect();
-        }
+        } //end runAppAsClient
 
         private static void runAppAsServer()
         {
@@ -129,8 +137,8 @@ namespace ChatProgram
 
             try
             {
-                string clientMessage = "";
-                string serverMessage = "";
+                string clientMessage;
+                string serverMessage;
                 
                 //create networkstream and readers/writers
                 server.clientCommunication();
@@ -175,5 +183,5 @@ namespace ChatProgram
                 Console.WriteLine(e.Message);   
             }
         }
-    }
+    }//end runAppAsServer
 }
