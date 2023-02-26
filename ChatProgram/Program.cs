@@ -147,27 +147,25 @@ namespace ChatProgram
 
                             //clean the buffer to prevent errors
                             server.streamWriter.Flush();
+                            
+                            clientMessage = server.streamReader.ReadLine(); //this will block
+
+                            //check if they've entered any variation of the word "quit"
+                            if (string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine("Client has disconnected from the chat.");
+                                Console.WriteLine("Exiting...");
+                                //closes stream objects and client socket
+                                server.disconnectChat();
+                                server.serverStatus = false;
+
+                                return;
+                            }
+
+                            //print their message to the console
+                            Console.WriteLine("Client: " + clientMessage);
                         }
                     }
-
-                    clientMessage = server.streamReader.ReadLine(); //this will block
-
-                    //check if they've entered any variation of the word "quit"
-                    if (string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine("Client has disconnected from the chat.");
-                        Console.WriteLine("Exiting...");
-                        //closes stream objects and client socket
-                        server.disconnectChat();
-                        server.serverStatus = false;
-
-                        return;
-                    }
-
-                    //print their message to the console
-                    Console.WriteLine("Client: " + clientMessage);
-                    
-                    //end if(server.socketForClient.Connected)
                 } //end while loop
             }
             catch (Exception e)
