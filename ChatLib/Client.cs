@@ -20,13 +20,11 @@ namespace ChatLib
             this.localIP = localIP;
             this.port = port;
         }
-
+        
         public void ConnectToServer()
         {
             try
             {
-                //program will fail if ip isn't same as server
-                //TcpClient client = new TcpClient();
                 client = new TcpClient();
                 client.Connect(localIP, port);
 
@@ -35,9 +33,6 @@ namespace ChatLib
                     networkStream = client.GetStream();
                     streamReader = new StreamReader(networkStream);
                     streamWriter = new StreamWriter(networkStream);
-                    
-                    //for testing:
-                    Console.WriteLine("Connected to server");
                 }
             }
             catch
@@ -47,39 +42,48 @@ namespace ChatLib
             }
         }
 
-        public void sendMessage(String message)
+        public void sendMessage(string clientMessage)
         {
-            if (client.Connected)
+            if (string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
             {
-                networkStream = client.GetStream();
-                byte[] outStream = System.Text.Encoding.ASCII.GetBytes(message);
-                networkStream.Write(outStream, 0, outStream.Length);
-                networkStream.Flush();
-                    
-                //streamReader = new StreamReader(networkStream);
-                //streamWriter = new StreamWriter(networkStream);
-                
-                //for testing (ideally this method would return the value so that it can be printed from the main method)
-                Console.WriteLine(message);
+                //send the server a message to say the client has left
+                Console.WriteLine("You disconnected the chat. Bye!");
+                streamWriter.WriteLine("quit"); //this is one way to make sure "quit"/escape have the same effect, I can change this
+                                
+                streamWriter.Flush();
+                clientStatus = false;
+
+                return;
             }
+                            
+            streamWriter.WriteLine(clientMessage);
+            streamWriter.Flush();
         }
 
-        public void recieveMessage()
+        public void listenForMessage()
         {
-            //for server response
-            byte[] outStream = new byte[256];
-            String responseData = String.Empty;
-                    
-            //read
-            Int32 bytes = networkStream.Read(outStream, 0, outStream.Length);
-            responseData = System.Text.Encoding.ASCII.GetString(outStream, 0, bytes);
-            
-            //again just for testing, this method should return that value and it should be printed from main method
-            Console.WriteLine("Recieved: {0}", responseData);
+            string serverMessage;
+            //this is from the reader, so the message the server sent to the stream
+            serverMessage = streamReader.ReadLine();
+            //check if they've entered any variation of the word "quit"
+            if (string.Equals(serverMessage, "quit", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Server has disconnected the chat.");
+                Console.WriteLine("Exiting...");
+                //closes stream objects and client socket
+                disconnect();
+                clientStatus = false;
+
+                return;
+            }
+                                
+            Console.WriteLine("Server: " + serverMessage);
         }
 
         public void disconnect()
         {
+            clientStatus = false;
+            
             streamWriter.Close();
             networkStream.Close();
             streamWriter.Close();
