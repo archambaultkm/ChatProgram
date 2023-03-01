@@ -17,11 +17,7 @@ namespace ChatProgram
             }
             else
             {
-                Console.Title = "Running as Client";
-                string localIP = "localhost";
-                //I just picked a random port number, idk what it should be
-                int port = 8888;
-
+                
                 runAppAsClient();
             }
         }//end main
@@ -51,7 +47,6 @@ namespace ChatProgram
             try
             {
                 string clientMessage;
-                string serverMessage;
 
                 while (client.clientStatus)
                 {
@@ -123,7 +118,6 @@ namespace ChatProgram
             
             try
             {
-                string clientMessage;
                 string serverMessage;
                 
                 //create networkstream and readers/writers
