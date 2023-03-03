@@ -37,47 +37,36 @@ namespace ChatLib
             }
             catch
             {
-                //maybe this is the validation?
                 Console.WriteLine("Error connecting client to server");
             }
         }
 
-        public void sendMessage(string clientMessage)
+        public bool sendMessage(string clientMessage)
         {
             if (string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
             {
                 //send the server a message to say the client has left
-                Console.WriteLine("You disconnected the chat. Bye!");
                 streamWriter.WriteLine("quit"); //this is one way to make sure "quit"/escape have the same effect, I can change this
-                                
                 streamWriter.Flush();
                 clientStatus = false;
 
-                return;
+                return false;
             }
-                            
+            
             streamWriter.WriteLine(clientMessage);
             streamWriter.Flush();
+
+            return true;
         }
 
-        public void listenForMessage()
+        public string listenForMessage()
         {
             string serverMessage;
             //this is from the reader, so the message the server sent to the stream
             serverMessage = streamReader.ReadLine();
-            //check if they've entered any variation of the word "quit"
-            if (string.Equals(serverMessage, "quit", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("Server has disconnected the chat.");
-                Console.WriteLine("Exiting...");
-                //closes stream objects and client socket
-                disconnect();
-                clientStatus = false;
 
-                return;
-            }
-                                
-            Console.WriteLine("Server: " + serverMessage);
+            //Console.WriteLine("Server: " + serverMessage);
+            return serverMessage;
         }
 
         public void disconnect()

@@ -17,7 +17,6 @@ namespace ChatProgram
             }
             else
             {
-                
                 runAppAsClient();
             }
         }//end main
@@ -25,11 +24,8 @@ namespace ChatProgram
         private static void runAppAsClient()
         {
             Console.Title = "Running as Client";
-            string localIP = "localhost";
-            //I just picked a random port number, idk what it should be
-            int port = 8888;
-            
-            Client client = new Client(localIP, port);
+
+            Client client = new Client("localhost", 8888);
             
             //makes a new tcpClient/stream objects
             client.ConnectToServer();
@@ -47,23 +43,30 @@ namespace ChatProgram
             try
             {
                 string clientMessage;
-
+                string serverMessage;
+                
                 while (client.clientStatus)
                 {
                     if (Console.KeyAvailable)
                     {
-                        //User input mode: when user press "I" key.            
+                        //User input mode: when user press "I" key. Intercept:true prevents them typing the entered letter to console          
                         ConsoleKeyInfo userKey = Console.ReadKey(true); //Blocking statement
                         if (userKey.Key == ConsoleKey.I)
                         {
                             Console.Write(">>");
                             clientMessage = Console.ReadLine();
-                            client.sendMessage(clientMessage);
+                            
+                            //client.sendMessage returns false if they enter a string to quit the program
+                            if (!client.sendMessage(clientMessage))
+                            {
+                                Console.WriteLine("You disconnected the chat. Bye!");
+                            }
                             
                         } else if (userKey.Key == ConsoleKey.Escape)
                         {
                             //send the server a message to say the client has left
                             Console.WriteLine("You disconnected the chat. Bye!");
+                            client.sendMessage("quit");
                             client.disconnect();
 
                             return;
@@ -72,7 +75,19 @@ namespace ChatProgram
                     //listening mode
                     if (client.networkStream.DataAvailable)
                     {
-                        client.listenForMessage();
+                        serverMessage = client.listenForMessage();
+
+                        //check if they've entered any variation of the word "quit", and if not print it
+                        if (!string.Equals(serverMessage, "quit", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine("Server: " + serverMessage);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Server has disconnected the chat.");
+                            Console.WriteLine("Exiting...");
+                            client.disconnect();
+                        }
                     }
                 }//end while(client.clientStatus)
             }
@@ -80,20 +95,14 @@ namespace ChatProgram
             {
                 Console.WriteLine("Problem reading from server");
             }
-            
-            //closes stream objects
-            client.disconnect();
         } //end runAppAsClient
 
         private static void runAppAsServer()
         {
             Console.Title = "Running as Server";
                 
-            //use IPAddress.Any to accept any connection (localhost wil work)
-            IPAddress localIP = IPAddress.Any;
-            int port = 8888;
-            
-            Server server = new Server(localIP, port);
+            //use IPAddress.Any to accept any connection (localhost will work)
+            Server server = new Server(IPAddress.Any, 8888);
             
             //creates and starts new tcpListener:
             server.startServer();
@@ -103,7 +112,6 @@ namespace ChatProgram
             
             Console.WriteLine("Waiting for client to connect...");
 
-            //if a client is trying to connect
             //accept client has server.acceptsocket method
             if (server.acceptClient())
             {
@@ -119,27 +127,32 @@ namespace ChatProgram
             try
             {
                 string serverMessage;
+                string clientMessage;
                 
                 //create networkstream and readers/writers
-                server.clientCommunication();
+                server.startCommunication();
                 
-                //run until the client tries to exit
+                //run until the somebody tries to exit
                 while (server.serverStatus)
                 {
                     if (Console.KeyAvailable)
                     {
-                        //User input mode: when user press "I" key.            
+                        //User input mode: when user presses "I" key.            
                         ConsoleKeyInfo userKey = Console.ReadKey(true); //Blocking statement
                         if (userKey.Key == ConsoleKey.I)
                         {
                             Console.Write(">>");
                             serverMessage = Console.ReadLine();
-                            
-                            server.sendMessage(serverMessage);
+
+                            if (!server.sendMessage(serverMessage))
+                            {
+                                Console.WriteLine("You disconnected the chat. Bye!");
+                            }
                             
                         } else if (userKey.Key == ConsoleKey.Escape)
                         {
                             Console.WriteLine("You disconnected the chat. Bye!");
+                            server.sendMessage("quit");
                             server.disconnectChat();
 
                             return;
@@ -149,7 +162,19 @@ namespace ChatProgram
                     //listening mode
                     if (server.networkStream.DataAvailable)//this will circumvent blocking if there is no new data
                     {
-                        server.listenForMessage();
+                        clientMessage = server.listenForMessage();
+
+                        //check if they've entered any variation of the word "quit", and if not print it
+                        if (!string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine("Client: " + clientMessage);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Client has disconnected the chat.");
+                            Console.WriteLine("Exiting...");
+                            server.disconnectChat();
+                        }
                     }
                 } //end while loop
             }
@@ -157,6 +182,6 @@ namespace ChatProgram
             {
                 Console.WriteLine(e.Message);   
             }
-        }
-    }//end runAppAsServer
-}
+        }//end runAppAsServer
+    }//end main class
+}//end namespace

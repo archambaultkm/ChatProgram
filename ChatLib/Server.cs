@@ -28,7 +28,7 @@ namespace ChatLib
             {
                 tcpListener = new TcpListener(localIP, port);
                 tcpListener.Start();
-                Console.WriteLine("Server started successfully");
+                //Console.WriteLine("Server started successfully");
             }
             catch
             {
@@ -51,7 +51,7 @@ namespace ChatLib
             }
         }
 
-        public void clientCommunication()
+        public void startCommunication()
         {
             //data from the client
             networkStream = new NetworkStream(socketForClient);
@@ -70,42 +70,32 @@ namespace ChatLib
             socketForClient.Close();
         }
         
-        public void sendMessage(string outgoingMessage)
+        public bool sendMessage(string outgoingMessage)
         {
             if (string.Equals(outgoingMessage, "quit", StringComparison.OrdinalIgnoreCase))
             {
-                //send the server a message to say the client has left
-                Console.WriteLine("You disconnected the chat. Bye!");
                 streamWriter.WriteLine("quit"); //this is one way to make sure "quit"/escape have the same effect, I can change this
                                 
                 streamWriter.Flush();
                 serverStatus = false;
 
-                return;
+                return false;
             }
                             
             streamWriter.WriteLine(outgoingMessage);
             streamWriter.Flush();
+
+            return true;
         }
         
-        public void listenForMessage()
+        public string listenForMessage()
         {
             string incomingMessage;
-            //this is from the reader, so the message the server sent to the stream
+            //this is from the reader, so the message the client sent to the stream
             incomingMessage = streamReader.ReadLine();
-            //check if they've entered any variation of the word "quit"
-            if (string.Equals(incomingMessage, "quit", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("Server has disconnected the chat.");
-                Console.WriteLine("Exiting...");
-                //closes stream objects and client socket
-                disconnectChat();
-                serverStatus = false;
 
-                return;
-            }
-                                
-            Console.WriteLine("Client: " + incomingMessage);
+            //Console.WriteLine("Client: " + incomingMessage);
+            return incomingMessage;
         }
     }
 }
