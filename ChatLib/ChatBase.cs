@@ -9,7 +9,6 @@ namespace ChatLib
         public string localIP { get; set; }
         public int port { get; set; }
         public bool status = true;
-        //public Socket socketForClient { get; set; }
         public NetworkStream networkStream { get; set; }
         public StreamReader streamReader { get; set; }
         public StreamWriter streamWriter { get; set; }
@@ -37,8 +36,7 @@ namespace ChatLib
             string incomingMessage;
             //this is from the reader, so the message the client sent to the stream
             incomingMessage = streamReader.ReadLine();
-
-            //Console.WriteLine("Client: " + incomingMessage);
+            
             return incomingMessage;
         }
         
