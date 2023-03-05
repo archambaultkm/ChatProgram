@@ -28,18 +28,17 @@ namespace ChatLib
             }
         }
 
-        public bool AcceptClient()
+        public void AcceptClient()
         {
             try
             {
                 //blocking method:
                 socketForClient = tcpListener.AcceptSocket();
-                return true;
+                Console.WriteLine("Client Connected!");
             }
             catch
             {
                 Console.WriteLine("Error accepting client");
-                return false;
             }
         }
 

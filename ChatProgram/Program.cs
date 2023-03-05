@@ -2,16 +2,14 @@
 using System.Threading;
 using ChatLib;
 using System.Linq;
-using System.Net;
 
 namespace ChatProgram
 {
     public class Program
-
     {
         private const Int32 port = 8888;
         private const string ipAddr = "127.0.0.1";
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             if (args.Contains("-server"))
             {
@@ -31,14 +29,8 @@ namespace ChatProgram
             
             //makes a new tcpClient/stream objects
             client.ConnectToServer();
-
-            Console.WriteLine("Connected to server.");
-            Thread.Sleep(1000);
             
-            Console.Clear();
-            
-            Console.WriteLine("Press \"I\" to enter insert mode.");
-            Console.WriteLine("Type \"quit\" or press Escape to close the application.");
+            StartMenu();
 
             try
             {
@@ -104,22 +96,13 @@ namespace ChatProgram
             //creates and starts new tcpListener:
             server.StartServer();
             
-            Thread.Sleep(1000);
             Console.Clear();
-            
             Console.WriteLine("Waiting for client to connect...");
 
             //accept client has server.acceptsocket method
-            if (server.AcceptClient())
-            {
-                Console.WriteLine("Client Connected!");
-                
-                Thread.Sleep(1000);
-                Console.Clear();
-                
-                Console.WriteLine("Press \"I\" to enter insert mode.");
-                Console.WriteLine("Type \"quit\" or press Escape to close the application.");
-            }
+            server.AcceptClient();
+            
+            StartMenu();
             
             try
             {
@@ -180,5 +163,14 @@ namespace ChatProgram
                 Console.WriteLine(e.Message);   
             }
         }//end runAppAsServer
+
+        private static void StartMenu()
+        {
+            Thread.Sleep(1000);
+            Console.Clear();
+            
+            Console.WriteLine("Press \"I\" to enter insert mode.");
+            Console.WriteLine("Type \"quit\" or press Escape to close the application.");
+        }
     }//end main class
 }//end namespace

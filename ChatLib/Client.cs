@@ -26,6 +26,8 @@ namespace ChatLib
                     networkStream = client.GetStream();
                     streamReader = new StreamReader(networkStream);
                     streamWriter = new StreamWriter(networkStream);
+                    
+                    Console.WriteLine("Connected to server.");
                 }
             }
             catch
