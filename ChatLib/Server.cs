@@ -5,30 +5,22 @@ using System.Net.Sockets;
 
 namespace ChatLib
 {
-    public class Server
+    public class Server : ChatBase
     {
-        public IPAddress localIP { get; }
-        public int port { get; }
-        public bool serverStatus = true;
         public Socket socketForClient { get; set; }
-        public NetworkStream networkStream { get; set; }
-        public StreamReader streamReader { get; set; }
-        public StreamWriter streamWriter { get; set; }
-        
         private TcpListener tcpListener { get; set; }
-        public Server(IPAddress localIp, int port)
+        public Server(string localIp, int port)
         {
-            this.localIP = localIp;
-            this.port = port;
+            base.localIP = localIp;
+            base.port = port;
         }
 
-        public void startServer()
+        public void StartServer()
         {
             try
             {
-                tcpListener = new TcpListener(localIP, port);
+                tcpListener = new TcpListener(IPAddress.Parse(localIP), port);
                 tcpListener.Start();
-                //Console.WriteLine("Server started successfully");
             }
             catch
             {
@@ -36,7 +28,7 @@ namespace ChatLib
             }
         }
 
-        public bool acceptClient()
+        public bool AcceptClient()
         {
             try
             {
@@ -51,7 +43,7 @@ namespace ChatLib
             }
         }
 
-        public void startCommunication()
+        public void OpenStreams()
         {
             //data from the client
             networkStream = new NetworkStream(socketForClient);
@@ -59,43 +51,11 @@ namespace ChatLib
             streamReader = new StreamReader(networkStream);
             streamWriter = new StreamWriter(networkStream);
         }
-
-        public void disconnectChat()
+        
+        public override void DisconnectChat()
         {
-            serverStatus = false;
-            
-            networkStream.Close();
-            streamWriter.Close();
-            streamReader.Close();
+            base.DisconnectChat();
             socketForClient.Close();
-        }
-        
-        public bool sendMessage(string outgoingMessage)
-        {
-            if (string.Equals(outgoingMessage, "quit", StringComparison.OrdinalIgnoreCase))
-            {
-                streamWriter.WriteLine("quit"); //this is one way to make sure "quit"/escape have the same effect, I can change this
-                                
-                streamWriter.Flush();
-                serverStatus = false;
-
-                return false;
-            }
-                            
-            streamWriter.WriteLine(outgoingMessage);
-            streamWriter.Flush();
-
-            return true;
-        }
-        
-        public string listenForMessage()
-        {
-            string incomingMessage;
-            //this is from the reader, so the message the client sent to the stream
-            incomingMessage = streamReader.ReadLine();
-
-            //Console.WriteLine("Client: " + incomingMessage);
-            return incomingMessage;
         }
     }
 }

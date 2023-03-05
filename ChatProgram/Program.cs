@@ -7,30 +7,30 @@ using System.Net;
 namespace ChatProgram
 {
     public class Program
-    
+
     {
+        private const Int32 port = 8888;
+        private const string ipAddr = "127.0.0.1";
         static void Main(string[] args)
         {
             if (args.Contains("-server"))
             {
+                Console.Title = "Running as Server";
                 runAppAsServer();
             }
             else
             {
+                Console.Title = "Running as Client";
                 runAppAsClient();
             }
         }//end main
 
         private static void runAppAsClient()
         {
-            Console.Title = "Running as Client";
-
-            Client client = new Client("localhost", 8888);
+            Client client = new Client(ipAddr, port);
             
             //makes a new tcpClient/stream objects
             client.ConnectToServer();
-            
-            //at this point the client program will crash if run before server
 
             Console.WriteLine("Connected to server.");
             Thread.Sleep(1000);
@@ -45,7 +45,7 @@ namespace ChatProgram
                 string clientMessage;
                 string serverMessage;
                 
-                while (client.clientStatus)
+                while (client.status)
                 {
                     if (Console.KeyAvailable)
                     {
@@ -57,7 +57,7 @@ namespace ChatProgram
                             clientMessage = Console.ReadLine();
                             
                             //client.sendMessage returns false if they enter a string to quit the program
-                            if (!client.sendMessage(clientMessage))
+                            if (!client.SendMessage(clientMessage))
                             {
                                 Console.WriteLine("You disconnected the chat. Bye!");
                             }
@@ -66,8 +66,8 @@ namespace ChatProgram
                         {
                             //send the server a message to say the client has left
                             Console.WriteLine("You disconnected the chat. Bye!");
-                            client.sendMessage("quit");
-                            client.disconnect();
+                            client.SendMessage("quit");
+                            client.DisconnectChat();
 
                             return;
                         }
@@ -75,7 +75,7 @@ namespace ChatProgram
                     //listening mode
                     if (client.networkStream.DataAvailable)
                     {
-                        serverMessage = client.listenForMessage();
+                        serverMessage = client.ListenForMessage();
 
                         //check if they've entered any variation of the word "quit", and if not print it
                         if (!string.Equals(serverMessage, "quit", StringComparison.OrdinalIgnoreCase))
@@ -86,7 +86,7 @@ namespace ChatProgram
                         {
                             Console.WriteLine("Server has disconnected the chat.");
                             Console.WriteLine("Exiting...");
-                            client.disconnect();
+                            client.DisconnectChat();
                         }
                     }
                 }//end while(client.clientStatus)
@@ -99,13 +99,10 @@ namespace ChatProgram
 
         private static void runAppAsServer()
         {
-            Console.Title = "Running as Server";
-                
-            //use IPAddress.Any to accept any connection (localhost will work)
-            Server server = new Server(IPAddress.Any, 8888);
+            Server server = new Server(ipAddr, port);
             
             //creates and starts new tcpListener:
-            server.startServer();
+            server.StartServer();
             
             Thread.Sleep(1000);
             Console.Clear();
@@ -113,7 +110,7 @@ namespace ChatProgram
             Console.WriteLine("Waiting for client to connect...");
 
             //accept client has server.acceptsocket method
-            if (server.acceptClient())
+            if (server.AcceptClient())
             {
                 Console.WriteLine("Client Connected!");
                 
@@ -130,10 +127,10 @@ namespace ChatProgram
                 string clientMessage;
                 
                 //create networkstream and readers/writers
-                server.startCommunication();
+                server.OpenStreams();
                 
                 //run until the somebody tries to exit
-                while (server.serverStatus)
+                while (server.status)
                 {
                     if (Console.KeyAvailable)
                     {
@@ -144,7 +141,7 @@ namespace ChatProgram
                             Console.Write(">>");
                             serverMessage = Console.ReadLine();
 
-                            if (!server.sendMessage(serverMessage))
+                            if (!server.SendMessage(serverMessage))
                             {
                                 Console.WriteLine("You disconnected the chat. Bye!");
                             }
@@ -152,8 +149,8 @@ namespace ChatProgram
                         } else if (userKey.Key == ConsoleKey.Escape)
                         {
                             Console.WriteLine("You disconnected the chat. Bye!");
-                            server.sendMessage("quit");
-                            server.disconnectChat();
+                            server.SendMessage("quit");
+                            server.DisconnectChat();
 
                             return;
                         }
@@ -162,7 +159,7 @@ namespace ChatProgram
                     //listening mode
                     if (server.networkStream.DataAvailable)//this will circumvent blocking if there is no new data
                     {
-                        clientMessage = server.listenForMessage();
+                        clientMessage = server.ListenForMessage();
 
                         //check if they've entered any variation of the word "quit", and if not print it
                         if (!string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
@@ -173,7 +170,7 @@ namespace ChatProgram
                         {
                             Console.WriteLine("Client has disconnected the chat.");
                             Console.WriteLine("Exiting...");
-                            server.disconnectChat();
+                            server.DisconnectChat();
                         }
                     }
                 } //end while loop
