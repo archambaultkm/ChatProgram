@@ -28,7 +28,8 @@ namespace ChatLib
             }
             catch
             {
-                Console.WriteLine("Error connecting client to server");
+                Console.WriteLine("Error connecting client to server. \nEnsure an instance of ChatProgram.exe is running in server mode (-server) \nExiting...");
+                Environment.Exit(1);
             }
         }
         

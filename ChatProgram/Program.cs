@@ -34,7 +34,7 @@ namespace ChatProgram
             Console.WriteLine("Waiting for connection...");
             user.Connect();
             
-            //display info 
+            //display info on a fresh screen after short delay
             Thread.Sleep(1000);
             Console.Clear();
             
@@ -52,7 +52,7 @@ namespace ChatProgram
                 {
                     if (Console.KeyAvailable)
                     {
-                        //User input mode: when user press "I" key. Intercept:true prevents them typing the entered letter to console          
+                        //User input mode: when user press "I" key. Intercept:true prevents them typing any entered letter to console          
                         ConsoleKeyInfo userKey = Console.ReadKey(true); //Blocking statement
                         if (userKey.Key == ConsoleKey.I)
                         {

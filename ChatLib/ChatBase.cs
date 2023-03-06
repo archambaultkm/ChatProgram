@@ -7,7 +7,7 @@ namespace ChatLib
     public abstract class ChatBase
     {
         public string localIP { get; set; }
-        public int port { get; set; }
+        public Int32 port { get; set; }
         public bool status = true;
         public NetworkStream networkStream { get; set; }
         public StreamReader streamReader { get; set; }
