@@ -14,26 +14,29 @@ namespace ChatLib
             base.port = port;
         }
         
-        public void ConnectToServer()
+        public override void StartChat()
+        {
+            client = new TcpClient();
+        }
+        
+        public override void Connect()
         {
             try
             {
-                client = new TcpClient();
+                //client = new TcpClient();
                 client.Connect(localIP, port);
-
-                if (client.Connected)
-                {
-                    networkStream = client.GetStream();
-                    streamReader = new StreamReader(networkStream);
-                    streamWriter = new StreamWriter(networkStream);
-                    
-                    Console.WriteLine("Connected to server.");
-                }
             }
             catch
             {
                 Console.WriteLine("Error connecting client to server");
             }
+        }
+        
+        public override void OpenStreams()
+        {
+            networkStream = client.GetStream();
+            streamReader = new StreamReader(networkStream);
+            streamWriter = new StreamWriter(networkStream);
         }
     }
 }

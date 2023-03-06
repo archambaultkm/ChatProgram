@@ -13,6 +13,9 @@ namespace ChatLib
         public StreamReader streamReader { get; set; }
         public StreamWriter streamWriter { get; set; }
 
+        public abstract void StartChat();
+        public abstract void Connect();
+        public abstract void OpenStreams();
         public bool SendMessage(string outgoingMessage)
         {
             if (string.Equals(outgoingMessage, "quit", StringComparison.OrdinalIgnoreCase))

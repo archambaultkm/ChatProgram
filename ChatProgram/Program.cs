@@ -14,30 +14,41 @@ namespace ChatProgram
             if (args.Contains("-server"))
             {
                 Console.Title = "Running as Server";
-                runAppAsServer();
+                Server server = new Server(ipAddr, port);
+                RunChat(server, "Client");
             }
             else
             {
                 Console.Title = "Running as Client";
-                runAppAsClient();
+                Client client = new Client(ipAddr, port);
+                RunChat(client, "Server");
             }
         }//end main
 
-        private static void runAppAsClient()
+        private static void RunChat(ChatBase user, string otherUser)
         {
-            Client client = new Client(ipAddr, port);
+            //make tcpclient/tcplistener
+            user.StartChat();
             
-            //makes a new tcpClient/stream objects
-            client.ConnectToServer();
+            //client will connect to server, server will accept client socket
+            Console.WriteLine("Waiting for connection...");
+            user.Connect();
             
-            StartMenu();
+            //display info 
+            Thread.Sleep(1000);
+            Console.Clear();
+            
+            Console.WriteLine("Press \"I\" to enter insert mode.");
+            Console.WriteLine("Type \"quit\" or press Escape to close the application.");
 
             try
             {
-                string clientMessage;
-                string serverMessage;
-                
-                while (client.status)
+                string outgoingMessage;
+                string incomingMessage;
+
+                user.OpenStreams();
+
+                while (user.status)
                 {
                     if (Console.KeyAvailable)
                     {
@@ -46,131 +57,48 @@ namespace ChatProgram
                         if (userKey.Key == ConsoleKey.I)
                         {
                             Console.Write(">>");
-                            clientMessage = Console.ReadLine();
-                            
+                            outgoingMessage = Console.ReadLine();
+
                             //client.sendMessage returns false if they enter a string to quit the program
-                            if (!client.SendMessage(clientMessage))
+                            if (!user.SendMessage(outgoingMessage))
                             {
                                 Console.WriteLine("You disconnected the chat. Bye!");
                             }
-                            
-                        } else if (userKey.Key == ConsoleKey.Escape)
+                        }
+                        else if (userKey.Key == ConsoleKey.Escape)
                         {
                             //send the server a message to say the client has left
                             Console.WriteLine("You disconnected the chat. Bye!");
-                            client.SendMessage("quit");
-                            client.DisconnectChat();
+                            user.SendMessage("quit");
+                            user.DisconnectChat();
 
                             return;
                         }
                     }
+
                     //listening mode
-                    if (client.networkStream.DataAvailable)
+                    if (user.networkStream.DataAvailable)
                     {
-                        serverMessage = client.ListenForMessage();
+                        incomingMessage = user.ListenForMessage();
 
                         //check if they've entered any variation of the word "quit", and if not print it
-                        if (!string.Equals(serverMessage, "quit", StringComparison.OrdinalIgnoreCase))
+                        if (!string.Equals(incomingMessage, "quit", StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine("Server: " + serverMessage);
+                            Console.WriteLine("Server: " + incomingMessage);
                         }
                         else
                         {
-                            Console.WriteLine("Server has disconnected the chat.");
+                            Console.WriteLine(otherUser + " has disconnected the chat.");
                             Console.WriteLine("Exiting...");
-                            client.DisconnectChat();
+                            user.DisconnectChat();
                         }
                     }
-                }//end while(client.clientStatus)
+                } //end while(client.clientStatus)
             }
             catch
             {
-                Console.WriteLine("Problem reading from server");
+                Console.WriteLine("Problem reading from " + otherUser);
             }
-        } //end runAppAsClient
-
-        private static void runAppAsServer()
-        {
-            Server server = new Server(ipAddr, port);
-            
-            //creates and starts new tcpListener:
-            server.StartServer();
-            
-            Console.Clear();
-            Console.WriteLine("Waiting for client to connect...");
-
-            //accept client has server.acceptsocket method
-            server.AcceptClient();
-            
-            StartMenu();
-            
-            try
-            {
-                string serverMessage;
-                string clientMessage;
-                
-                //create networkstream and readers/writers
-                server.OpenStreams();
-                
-                //run until the somebody tries to exit
-                while (server.status)
-                {
-                    if (Console.KeyAvailable)
-                    {
-                        //User input mode: when user presses "I" key.            
-                        ConsoleKeyInfo userKey = Console.ReadKey(true); //Blocking statement
-                        if (userKey.Key == ConsoleKey.I)
-                        {
-                            Console.Write(">>");
-                            serverMessage = Console.ReadLine();
-
-                            if (!server.SendMessage(serverMessage))
-                            {
-                                Console.WriteLine("You disconnected the chat. Bye!");
-                            }
-                            
-                        } else if (userKey.Key == ConsoleKey.Escape)
-                        {
-                            Console.WriteLine("You disconnected the chat. Bye!");
-                            server.SendMessage("quit");
-                            server.DisconnectChat();
-
-                            return;
-                        }
-                    }
-                    
-                    //listening mode
-                    if (server.networkStream.DataAvailable)//this will circumvent blocking if there is no new data
-                    {
-                        clientMessage = server.ListenForMessage();
-
-                        //check if they've entered any variation of the word "quit", and if not print it
-                        if (!string.Equals(clientMessage, "quit", StringComparison.OrdinalIgnoreCase))
-                        {
-                            Console.WriteLine("Client: " + clientMessage);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Client has disconnected the chat.");
-                            Console.WriteLine("Exiting...");
-                            server.DisconnectChat();
-                        }
-                    }
-                } //end while loop
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);   
-            }
-        }//end runAppAsServer
-
-        private static void StartMenu()
-        {
-            Thread.Sleep(1000);
-            Console.Clear();
-            
-            Console.WriteLine("Press \"I\" to enter insert mode.");
-            Console.WriteLine("Type \"quit\" or press Escape to close the application.");
-        }
+        } //end RunChat
     }//end main class
 }//end namespace

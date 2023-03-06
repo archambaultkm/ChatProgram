@@ -15,7 +15,7 @@ namespace ChatLib
             base.port = port;
         }
 
-        public void StartServer()
+        public override void StartChat()
         {
             try
             {
@@ -28,7 +28,7 @@ namespace ChatLib
             }
         }
 
-        public void AcceptClient()
+        public override void Connect()
         {
             try
             {
@@ -42,7 +42,7 @@ namespace ChatLib
             }
         }
 
-        public void OpenStreams()
+        public override void OpenStreams()
         {
             //data from the client
             networkStream = new NetworkStream(socketForClient);
