@@ -84,7 +84,7 @@ namespace ChatProgram
                         //check if they've entered any variation of the word "quit", and if not print it
                         if (!string.Equals(incomingMessage, "quit", StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine("Server: " + incomingMessage);
+                            Console.WriteLine(otherUser + ": " + incomingMessage);
                         }
                         else
                         {

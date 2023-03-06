@@ -23,7 +23,6 @@ namespace ChatLib
         {
             try
             {
-                //client = new TcpClient();
                 client.Connect(localIP, port);
             }
             catch
