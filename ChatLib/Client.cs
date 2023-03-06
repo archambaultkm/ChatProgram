@@ -39,5 +39,11 @@ namespace ChatLib
             streamReader = new StreamReader(networkStream);
             streamWriter = new StreamWriter(networkStream);
         }
+        
+        public override void DisconnectChat()
+        {
+            base.DisconnectChat();
+            client.Dispose();
+        }
     }
 }
